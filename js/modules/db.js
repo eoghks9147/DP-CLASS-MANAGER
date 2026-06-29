@@ -1,5 +1,5 @@
-import { state, saveData } from '../storage.js';
-import { showToast, renderTable } from '../utils.js';
+import { state, saveData } from './storage.js';
+import { showToast, renderTable } from './utils.js';
 
 export function buildInputs() {
     const container = document.getElementById('db-input-container');

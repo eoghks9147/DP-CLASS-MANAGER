@@ -1,7 +1,7 @@
-import { state } from '../storage.js';
-import { renderTable } from '../utils.js';
-import { updateSpeechStats } from '../speech.js';
-import { updatePlannerStats } from '../planner.js';
+import { state } from './storage.js';
+import { renderTable } from './utils.js';
+import { updateSpeechStats } from './speech.js';
+import { updatePlannerStats } from './planner.js';
 
 // 발표용 달력 그리기
 export function renderSpeechCalendar() {

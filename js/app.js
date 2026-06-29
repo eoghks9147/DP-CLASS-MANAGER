@@ -1,11 +1,11 @@
-import { loadData } from './modules/storage.js';
-import { initCalendarState, renderSpeechCalendar, renderPlannerCalendar } from './modules/calendar.js';
-import { buildInputs, fillDummyData, saveStudentDB } from './modules/db.js';
-import { renderTable } from './modules/utils.js';
-import { updateSpeechStats, adjustSpeechCount, updateSpeechMemo } from './modules/speech.js';
-import { updatePlannerStats, setPlannerCheckType, updatePlannerMemo } from './modules/planner.js';
-import { addLog } from './modules/meal.js';
-import { openMemoModal, closeMemoModal, saveMemo, deleteSelectedMemo, confirmResetAll, closeModal } from './modules/modal.js';
+import { loadData } from '../modules/storage.js';
+import { initCalendarState, renderSpeechCalendar, renderPlannerCalendar } from '../modules/calendar.js';
+import { buildInputs, fillDummyData, saveStudentDB } from '../modules/db.js';
+import { renderTable } from '../modules/utils.js';
+import { updateSpeechStats, adjustSpeechCount, updateSpeechMemo } from '../modules/speech.js';
+import { updatePlannerStats, setPlannerCheckType, updatePlannerMemo } from '../modules/planner.js';
+import { addLog } from '../modules/meal.js';
+import { openMemoModal, closeMemoModal, saveMemo, deleteSelectedMemo, confirmResetAll, closeModal } from '../modules/modal.js';
 
 // Expose functions globally to maintain HTML event bindings
 window.switchTab = (tabId) => {
