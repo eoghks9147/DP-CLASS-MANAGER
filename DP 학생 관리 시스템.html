@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초등학급 통합 관리 시스템</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex h-screen overflow-hidden">
+
+    <!-- 사이드바 -->
+    <aside id="sidebar" class="bg-slate-900 text-slate-200 w-64 flex flex-col transition-all duration-300 relative z-20 shrink-0">
+        <!-- 사이드바 타이틀 -->
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <span class="font-extrabold text-lg tracking-wide flex items-center gap-2 text-indigo-400">
+                <i data-lucide="graduation-cap"></i> <span id="sidebar-title">초등 학급 관리</span>
+            </span>
+            <button id="toggle-sidebar" class="p-1 hover:bg-slate-800 rounded transition text-slate-400 hover:text-white">
+                <i data-lucide="chevron-left" id="toggle-icon"></i>
+            </button>
+        </div>
+
+        <!-- 탭 네비게이션 -->
+        <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+            <button onclick="switchTab('db')" id="btn-tab-db" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition bg-indigo-600 text-white font-bold shadow-sm">
+                <i data-lucide="database" class="w-5 h-5"></i>
+                <span class="tab-text">1. 학생 DB 관리</span>
+            </button>
+            <button onclick="switchTab('speech')" id="btn-tab-speech" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+                <span class="tab-text">2. 발표 관리</span>
+            </button> 
+            <button onclick="switchTab('planner')" id="btn-tab-planner" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                <span class="tab-text">3. 플래너 검사</span>
+            </button>
+            <button onclick="switchTab('meal')" id="btn-tab-meal" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                <i data-lucide="utensils" class="w-5 h-5"></i>
+                <span class="tab-text">4. 추가 급식</span>
+            </button>
+            <button onclick="switchTab('sports')" id="btn-tab-sports" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                <i data-lucide="trophy" class="w-5 h-5"></i>
+                <span class="tab-text">5. 체육 팀짜기</span>
+            </button>
+            <button onclick="switchTab('library')" id="btn-tab-library" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+                <span class="tab-text">6. 도서관 특별석</span>
+            </button>
+        </nav>
+
+        <!-- 데이터 초기화 버튼 -->
+        <div class="p-4 border-t border-slate-800">
+            <button onclick="confirmResetAll()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-rose-950/30 hover:bg-rose-900 text-rose-300 rounded-lg text-xs transition font-semibold">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span class="tab-text">학급 전체 초기화</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- 메인 대시보드 영역 -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- 상단 헤더 -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
+            <h2 id="current-tab-title" class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="database" class="text-indigo-500"></i> 1. 학생 DB 설정 및 관리
+            </h2>
+            <div>
+                <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-200 font-semibold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    자동 저장 활성화됨
+                </span>
+            </div>
+        </header>
+
+        <!-- 메인 내용 스크롤뷰 -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+            <!-- 1. 학생 DB 설정 탭 -->
+            <section id="tab-db" class="tab-content space-y-6">
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg shadow-xs">
+                    <div class="flex">
+                        <i data-lucide="info" class="h-5 w-5 text-indigo-500 shrink-0"></i>
+                        <div class="ml-3 text-sm text-indigo-700">
+                            <span class="font-bold">안내:</span> 여기에 입력한 이름은 다른 모든 탭(발표, 급식, 체육, 도서관)에 실시간으로 연동됩니다. 이름을 적고 <strong>[저장하기]</strong>를 눌러주세요.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+                            <i data-lucide="users" class="text-indigo-500"></i> 1 ~ 20번 이름 등록
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="fillDummyData()" class="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs rounded-lg font-semibold transition">
+                                샘플 데이터 채우기
+                            </button>
+                            <button onclick="saveStudentDB()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1.5">
+                                <i data-lucide="save" class="w-4 h-4"></i> 저장하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 20개 입력 필드 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3" id="db-input-container">
+                        <!-- JS에서 동적으로 생성함 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 발표 탭 -->
+            <section id="tab-speech" class="tab-content hidden space-y-6">
+                <!-- 달력 컨트롤 헤더 및 정보 대시보드 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 미니 캘린더 컴포넌트 -->
+                    <div class="md:col-span-2 bg-slate-900 text-white p-5 rounded-xl shadow-md border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-sm flex items-center gap-2 text-indigo-400">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i> 일자별 발표 스케줄러 (날짜 선택)
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                    </button>
+                                    <span id="calendar-month-year" class="font-bold text-sm min-w-[100px] text-center">2026년 06월</span>
+                                    <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 요일 라벨 -->
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                                <div class="text-rose-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-sky-400">토</div>
+                            </div>
+                            <!-- 일자 그리드 -->
+                            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 text-center text-sm font-bold">
+                                <!-- JS를 통한 동적 달력 생성 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 오늘 날짜 이동 버튼 달력 영역 하단 배치 -->
+                        <div class="mt-4 pt-4 border-t border-slate-800 flex justify-end">
+                            <button onclick="selectToday()" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                                <i data-lucide="navigation-2" class="w-3.5 h-3.5"></i> 오늘 날짜로 이동
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 날짜 통계 정보 카드 -->
+                    <div class="bg-white p-5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-indigo-600 mb-2">
+                                <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                                <h4 class="font-extrabold text-lg" id="selected-date-title">2026-06-29</h4>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">위 달력에서 기록할 날짜를 선택해보세요. 선택한 날짜의 발표 통계와 주간 순위를 실시간으로 집계합니다.</p>
+                            
+                            <!-- 오늘 2회 이상 발표한 학생들 목록 -->
+                            <div class="space-y-5 border-t border-slate-100 pt-4 mt-4">
+                                <span class="text-xs text-slate-400 font-bold flex items-center gap-1">
+                                    <i data-lucide="award" class="w-3.5 h-3.5 text-rose-500"></i> 오늘 2회 이상 발표자
+                                </span>
+                                <div id="stat-high-frequency-students" class="flex flex-wrap gap-1 min-h-[28px]">
+                                    <!-- JS로 동적 생성 -->
+                                </div>
+                            </div>
+
+                            <!-- 한 주 단위 주간 누적 랭킹 (월~금) -->
+                            <div class="space-y-2 border-t border-slate-100 pt-4 mt-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-slate-400 font-bold flex items-center gap-1">
+                                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-indigo-500"></i> 주간 발표 순위 (월~금)
+                                    </span>
+                                    <span id="stat-week-range" class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-1.5 py-0.5 rounded"></span>
+                                </div>
+                                <ol id="stat-weekly-ranking" class="space-y-1.5 text-xs pt-1">
+                                    <!-- JS로 동적 생성 -->
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 발표 데이터 표 -->
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="text-base font-extrabold text-slate-800">📝 선택 날짜 발표 활동 현황</h3>
+                        <p class="text-xs text-slate-500">지정된 날짜의 발표 횟수를 올리거나 내리고 우측 인풋란에 간편하게 요약 메모를 등록하십시오.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">번호</th>
+                                    <th class="p-3 w-28">이름</th>
+                                    <th class="p-3 w-40 text-center">선택 날짜 발표 횟수</th>
+                                    <th class="p-3">발표 활동 메모</th>
+                                    <th class="p-3 w-28 text-center">전체 누적</th>
+                                </tr>
+                            </thead>
+                            <tbody id="speech-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 플래너 검사 탭 -->
+            <section id="tab-planner" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 플래너 캘린더 컴포넌트 -->
+                    <div class="md:col-span-2 bg-slate-900 text-white p-5 rounded-xl shadow-md border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-sm flex items-center gap-2 text-indigo-400">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i> 일자별 플래너 스케줄러 (날짜 선택)
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="changePlannerCalendarMonth(-1)" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                    </button>
+                                    <span id="planner-calendar-month-year" class="font-bold text-sm min-w-[100px] text-center">2026년 06월</span>
+                                    <button onclick="changePlannerCalendarMonth(1)" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 요일 라벨 -->
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                                <div class="text-rose-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-sky-400">토</div>
+                            </div>
+                            <!-- 일자 그리드 -->
+                            <div id="planner-calendar-days-grid" class="grid grid-cols-7 gap-1 text-center text-sm font-bold">
+                                <!-- JS에서 플래너 전용 달력 생성 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 오늘 날짜 이동 버튼 -->
+                        <div class="mt-4 pt-4 border-t border-slate-800 flex justify-end">
+                            <button onclick="selectPlannerToday()" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                                <i data-lucide="navigation-2" class="w-3.5 h-3.5"></i> 오늘 날짜로 이동
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 플래너 미검사 학생 카드 -->
+                    <div class="bg-white p-5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-rose-500 mb-2">
+                                <i data-lucide="user-x" class="w-5 h-5"></i>
+                                <h4 class="font-extrabold text-lg" id="planner-selected-date-title">2026-06-29</h4>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">선택 날짜에 플래너 '검사' 혹은 '특급검사'를 하지 않은 미검사 학생 명단이 실시간으로 집계되어 아래에 표시됩니다.</p>
+                            
+                            <!-- 미검사 리스트 컨테이너 -->
+                            <div class="space-y-3 border-t border-slate-100 pt-4 mt-4">
+                                <span class="text-xs text-rose-600 font-bold flex items-center gap-1">
+                                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i> 미검사 학생 명단
+                                </span>
+                                <div id="planner-uncheck-students" class="flex flex-wrap gap-1.5 min-h-[100px] content-start">
+                                    <!-- JS로 미검사 명단 동적 생성 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 플래너 데이터 현황 테이블 -->
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="text-base font-extrabold text-slate-800">📝 플래너 검사 및 일일 메모 관리</h3>
+                        <p class="text-xs text-slate-500">'검사' 또는 '특급검사' 중 하나만 클릭해도 제출 완료로 계산됩니다. 버튼을 다시 누르면 취소됩니다.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">번호</th>
+                                    <th class="p-3 w-28">이름</th>
+                                    <th class="p-3 w-64 text-center">검사 상태 선택</th>
+                                    <th class="p-3">플래너 활동 메모</th>
+                                    <th class="p-3 w-28 text-center">전체 누적</th>
+                                </tr>
+                            </thead>
+                            <tbody id="planner-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. 급식 탭 -->
+            <section id="tab-meal" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">🍱 급식 도우미 관리</h3>
+                        <p class="text-xs text-slate-500">배식 및 줄서기 지도를 도운 친구들의 활동 기록을 체크합니다. 날짜 칩을 누르면 메모 작성이 가능합니다.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">번호</th>
+                                    <th class="p-3 w-32">이름</th>
+                                    <th class="p-3 w-24">체크</th>
+                                    <th class="p-3 w-24 text-center">누적</th>
+                                    <th class="p-3">활동 날짜 및 메모 목록</th>
+                                </tr>
+                            </thead>
+                            <tbody id="meal-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 체육 활동 탭 -->
+            <section id="tab-sports" class="tab-content hidden space-y-6">
+                <!-- 체육 기록 테이블 -->
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">🏆 체육 활동 참여 대장</h3>
+                        <p class="text-xs text-slate-500">체육 시간 팀 리더가 되어 팀을 짜본 사람을 제외합니다.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">번호</th>
+                                    <th class="p-3 w-32">이름</th>
+                                    <th class="p-3 w-24">체크</th>
+                                    <th class="p-3 w-24 text-center">누적</th>
+                                    <th class="p-3">기록 날짜 및 메모 목록</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sports-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. 도서관 탭 -->
+            <section id="tab-library" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">📖 도서관 특별석 및 우수독서</h3>
+                        <p class="text-xs text-slate-500">오늘 도서실 특별석 배치 인원이나 특별 독서 활동을 완수한 인원을 체크합니다. 날짜 칩 클릭 시 메모 입력이 가능합니다.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">번호</th>
+                                    <th class="p-3 w-32">이름</th>
+                                    <th class="p-3 w-24">체크</th>
+                                    <th class="p-3 w-24 text-center">누적</th>
+                                    <th class="p-3">활동 날짜 및 메모 목록</th>
+                                </tr>
+                            </thead>
+                            <tbody id="library-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 메모 작성 및 편집 모달창 (급식, 체육, 도서관 공통) -->
+    <div id="memo-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 shadow-xl max-w-md w-full mx-4 border border-slate-200">
+            <div class="flex items-center gap-2 text-indigo-600 mb-4">
+                <i data-lucide="edit-3" class="w-5 h-5"></i>
+                <h4 class="font-bold text-lg text-slate-800" id="memo-modal-title">활동 메모 작성</h4>
+            </div>
+            <p class="text-xs text-slate-500 mb-4" id="memo-modal-subtitle">이름: 김철수 (1번)</p>
+            
+            <!-- 활동 날짜 수정 입력 필드 -->
+            <div class="mb-4">
+                <label class="text-[11px] font-bold text-slate-400 block mb-1">활동 날짜 수정</label>
+                <input type="date" id="memo-date-input" class="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm text-slate-800 font-semibold">
+            </div>
+
+            <textarea id="memo-textarea" rows="4" class="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm text-slate-800 placeholder-slate-300 mb-1" placeholder="상세 내용을 기록하세요..."></textarea>
+            <div class="flex justify-between items-center mt-6">
+                <button onclick="deleteSelectedMemo()" class="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 기록 삭제
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeMemoModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-100 text-xs font-semibold rounded-lg transition">취소</button>
+                    <button onclick="saveMemo()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 기본 경고 및 확인 알림 모달 -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 shadow-xl max-w-sm w-full mx-4 border border-slate-200">
+            <div class="flex items-center gap-3 text-rose-500 mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                <h4 class="font-bold text-lg text-slate-800" id="modal-title">경고</h4>
+            </div>
+            <p class="text-slate-600 text-sm mb-6" id="modal-message">정말 진행하시겠습니까?</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-100 text-xs font-semibold rounded-lg transition">취소</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림 -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i data-lucide="check-circle" class="text-emerald-400 w-5 h-5" id="toast-icon"></i>
+        <span id="toast-text">저장 완료</span>
+    </div>
+
+    <script>
+        const MAX_STUDENTS = 20;
+        let studentDB = [];
+        let activities = {
+            speech: {},
+            planner: {}, 
+            meal: {},
+            sports: {},
+            library: {}
+        };
+        
+        // 발표 캘린더 상태값
+        let selectedSpeechDate = ""; // 포맷: YYYY-MM-DD
+        let currentCalendarYear = 2026;
+        let currentCalendarMonth = 5; // 0-indexed (6월 = 5)
+
+        // 플래너 캘린더 전용 상태값
+        let selectedPlannerDate = ""; 
+        let currentPlannerCalendarYear = 2026;
+        let currentPlannerCalendarMonth = 5; 
+
+        // 메모 타겟 임시 저장용 (급식, 체육, 도서관)
+        let currentMemoTarget = null; // { type, studentId, index }
+
+        window.onload = function() {
+            lucide.createIcons();
+
+            // 사이드바 토글 동작 제어
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggle-sidebar');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const sidebarTitle = document.getElementById('sidebar-title');
+            const tabTexts = document.querySelectorAll('.tab-text');
+
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('w-64');
+                sidebar.classList.toggle('w-16');
+                const isCollapsed = sidebar.classList.contains('w-16');
+                
+                toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+                if (isCollapsed) {
+                    sidebarTitle.classList.add('hidden');
+                    tabTexts.forEach(el => el.classList.add('hidden'));
+                } else {
+                    sidebarTitle.classList.remove('hidden');
+                    tabTexts.forEach(el => el.classList.remove('hidden'));
+                }
+                lucide.createIcons();
+            });
+
+            loadData();
+            initCalendarState();
+            buildInputs();
+            renderAll();
+            renderSpeechCalendar();
+            updateSpeechStats();
+            
+            renderPlannerCalendar();
+            updatePlannerStats();
+        };
+
+        // 데이터 로드 및 마이그레이션 규격 표준화
+        function loadData() {
+            const savedDB = localStorage.getItem('school_db_students_2026');
+            if (savedDB) {
+                studentDB = JSON.parse(savedDB);
+            } else {
+                studentDB = Array.from({ length: MAX_STUDENTS }, (_, i) => ({ id: i + 1, name: '' }));
+            }
+
+            const savedActivities = localStorage.getItem('school_db_activities_2026');
+            if (savedActivities) {
+                activities = JSON.parse(savedActivities);
+                if (!activities.planner) activities.planner = {};
+            } else {
+                activities = { speech: {}, planner: {}, meal: {}, sports: {}, library: {} };
+            }
+
+            studentDB.forEach(s => {
+                // 1. 발표 탭 구조
+                if (!activities.speech[s.id]) {
+                    activities.speech[s.id] = { count: 0, dates: [] };
+                } else {
+                    activities.speech[s.id].dates = activities.speech[s.id].dates.map(d => {
+                        if (typeof d === 'string') {
+                            let formattedDate = d;
+                            if (d.length === 5) formattedDate = `2026-${d}`;
+                            return { date: formattedDate, count: 1, memo: "" };
+                        } else if (d && typeof d === 'object') {
+                            let formattedDate = d.date || "";
+                            if (formattedDate.length === 5) formattedDate = `2026-${formattedDate}`;
+                            return { 
+                                date: formattedDate, 
+                                count: d.count !== undefined ? Number(d.count) : 1, 
+                                memo: d.memo || "" 
+                            };
+                        }
+                        return null;
+                    }).filter(Boolean);
+                    recalculateSpeechTotalCount(s.id);
+                }
+
+                // 2. 플래너 데이터 구조 초기화 및 보정
+                if (!activities.planner[s.id]) {
+                    activities.planner[s.id] = { count: 0, dates: [] };
+                } else {
+                    recalculatePlannerTotalCount(s.id);
+                }
+
+                // 3. 다른 활동 탭 구조
+                ['meal', 'sports', 'library'].forEach(tab => {
+                    if (!activities[tab][s.id]) {
+                        activities[tab][s.id] = { count: 0, dates: [] };
+                    }
+                });
+            });
+        }
+
+        // 발표 전체 누적수 재평가 계산 함수 (타입 엄격화)
+        function recalculateSpeechTotalCount(studentId) {
+            const act = activities.speech[studentId];
+            if (!act) return;
+            let total = 0;
+            act.dates.forEach(d => {
+                total += Number(d.count || 0);
+            });
+            act.count = total;
+        }
+
+        // 플래너 전체 누적수 재평가 계산 함수 (검사, 특급검사 등록 시 1회 인정)
+        function recalculatePlannerTotalCount(studentId) {
+            const act = activities.planner[studentId];
+            if (!act) return;
+            let total = 0;
+            act.dates.forEach(d => {
+                if (d.checkType === 'normal' || d.checkType === 'special') {
+                    total += 1;
+                }
+            });
+            act.count = total;
+        }
+
+        // 로컬스토리지 저장
+        function saveData() {
+            localStorage.setItem('school_db_students_2026', JSON.stringify(studentDB));
+            localStorage.setItem('school_db_activities_2026', JSON.stringify(activities));
+        }
+
+        // 학급 설정 인풋 박스 빌더
+        function buildInputs() {
+            const container = document.getElementById('db-input-container');
+            container.innerHTML = '';
+            studentDB.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2 bg-slate-50 border border-slate-200 p-2.5 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition duration-150';
+                div.innerHTML = `
+                    <span class="w-6 text-slate-400 text-xs font-bold text-center">${s.id}</span>
+                    <input type="text" id="db-input-${s.id}" value="${s.name}" placeholder="이름 없음" class="bg-transparent w-full font-bold text-sm text-slate-800 outline-none placeholder-slate-300">
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 샘플 더미데이터 주입
+        function fillDummyData() {
+            const sampleNames = ['민우', '서연', '도현', '지아', '준우', '하은', '시우', '윤아', '지호', '수빈', '유준', '채원', '예준', '다인', '건우', '서진', '현우', '지원', '주원', '소윤'];
+            for (let i = 1; i <= MAX_STUDENTS; i++) {
+                const input = document.getElementById(`db-input-${i}`);
+                if (input) input.value = sampleNames[i - 1] || '';
+            }
+            showToast('샘플 명단이 입력되었습니다.');
+        }
+
+        // 학생 DB 저장
+        function saveStudentDB() {
+            for (let i = 1; i <= MAX_STUDENTS; i++) {
+                const input = document.getElementById(`db-input-${i}`);
+                if (input) {
+                    studentDB[i - 1].name = input.value.trim();
+                }
+            }
+            saveData();
+            renderAll();
+            showToast('학생 DB 데이터가 통합 저장되었습니다.');
+        }
+
+        // 발표용 달력 초기 상태 할당
+        function initCalendarState() {
+            const today = new Date();
+            currentCalendarYear = today.getFullYear();
+            currentCalendarMonth = today.getMonth();
+            
+            const mm = String(currentCalendarMonth + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            selectedSpeechDate = `${currentCalendarYear}-${mm}-${dd}`;
+
+            currentPlannerCalendarYear = today.getFullYear();
+            currentPlannerCalendarMonth = today.getMonth();
+            selectedPlannerDate = `${currentPlannerCalendarYear}-${mm}-${dd}`;
+        }
+
+        // 달력 랜더링 로직
+        function renderSpeechCalendar() {
+            const container = document.getElementById('calendar-days-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            document.getElementById('calendar-month-year').textContent = `${currentCalendarYear}년 ${String(currentCalendarMonth + 1).padStart(2, '0')}월`;
+            
+            const firstDayIndex = new Date(currentCalendarYear, currentCalendarMonth, 1).getDay();
+            const totalDays = new Date(currentCalendarYear, currentCalendarMonth + 1, 0).getDate();
+            const prevTotalDays = new Date(currentCalendarYear, currentCalendarMonth, 0).getDate();
+            
+            const daysWithRecords = new Set();
+            studentDB.forEach(s => {
+                const act = activities.speech[s.id];
+                if (act && act.dates) {
+                    act.dates.forEach(d => {
+                        const targetPrefix = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-`;
+                        if (d.date && d.date.startsWith(targetPrefix) && Number(d.count || 0) > 0) {
+                            const dayNum = parseInt(d.date.split('-')[2], 10);
+                            daysWithRecords.add(dayNum);
+                        }
+                    });
+                }
+            });
+
+            for (let i = firstDayIndex; i > 0; i--) {
+                const day = prevTotalDays - i + 1;
+                const blank = document.createElement('div');
+                blank.className = 'text-slate-700 text-xs p-2 select-none pointer-events-none opacity-20';
+                blank.textContent = day;
+                container.appendChild(blank);
+            }
+            
+            const todayObj = new Date();
+            const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+            
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = (dateStr === selectedSpeechDate);
+                const isToday = (dateStr === todayStr);
+                const hasAct = daysWithRecords.has(day);
+                
+                const dayBtn = document.createElement('button');
+                dayBtn.type = 'button';
+                dayBtn.onclick = () => selectSpeechDate(currentCalendarYear, currentCalendarMonth, day);
+                
+                let themeClass = 'hover:bg-slate-800 text-slate-300';
+                if (isSelected) {
+                    themeClass = 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm';
+                } else if (isToday) {
+                    themeClass = 'border border-indigo-500 text-indigo-400 hover:bg-slate-800';
+                }
+                
+                dayBtn.className = `p-1.5 rounded-lg transition duration-150 flex flex-col items-center justify-center relative cursor-pointer ${themeClass}`;
+                
+                const numSpan = document.createElement('span');
+                numSpan.textContent = day;
+                dayBtn.appendChild(numSpan);
+                
+                if (hasAct) {
+                    const dot = document.createElement('span');
+                    dot.className = `w-1.5 h-1.5 rounded-full mt-0.5 inline-block ${isSelected ? 'bg-white' : 'bg-indigo-400 animate-pulse'}`;
+                    dayBtn.appendChild(dot);
+                } else {
+                    const emptyDot = document.createElement('span');
+                    emptyDot.className = 'w-1.5 h-1.5 mt-0.5 inline-block';
+                    dayBtn.appendChild(emptyDot);
+                }
+                
+                container.appendChild(dayBtn);
+            }
+        }
+
+        // 플래너 전용 달력 렌더러
+        function renderPlannerCalendar() {
+            const container = document.getElementById('planner-calendar-days-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            document.getElementById('planner-calendar-month-year').textContent = `${currentPlannerCalendarYear}년 ${String(currentPlannerCalendarMonth + 1).padStart(2, '0')}월`;
+            
+            const firstDayIndex = new Date(currentPlannerCalendarYear, currentPlannerCalendarMonth, 1).getDay();
+            const totalDays = new Date(currentPlannerCalendarYear, currentPlannerCalendarMonth + 1, 0).getDate();
+            const prevTotalDays = new Date(currentPlannerCalendarYear, currentPlannerCalendarMonth, 0).getDate();
+            
+            const daysWithRecords = new Set();
+            studentDB.forEach(s => {
+                const act = activities.planner[s.id];
+                if (act && act.dates) {
+                    act.dates.forEach(d => {
+                        const targetPrefix = `${currentPlannerCalendarYear}-${String(currentPlannerCalendarMonth + 1).padStart(2, '0')}-`;
+                        if (d.date && d.date.startsWith(targetPrefix) && (d.checkType === 'normal' || d.checkType === 'special')) {
+                            const dayNum = parseInt(d.date.split('-')[2], 10);
+                            daysWithRecords.add(dayNum);
+                        }
+                    });
+                }
+            });
+
+            for (let i = firstDayIndex; i > 0; i--) {
+                const day = prevTotalDays - i + 1;
+                const blank = document.createElement('div');
+                blank.className = 'text-slate-700 text-xs p-2 select-none pointer-events-none opacity-20';
+                blank.textContent = day;
+                container.appendChild(blank);
+            }
+            
+            const todayObj = new Date();
+            const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+            
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${currentPlannerCalendarYear}-${String(currentPlannerCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = (dateStr === selectedPlannerDate);
+                const isToday = (dateStr === todayStr);
+                const hasAct = daysWithRecords.has(day);
+                
+                const dayBtn = document.createElement('button');
+                dayBtn.type = 'button';
+                dayBtn.onclick = () => selectPlannerDate(currentPlannerCalendarYear, currentPlannerCalendarMonth, day);
+                
+                let themeClass = 'hover:bg-slate-800 text-slate-300';
+                if (isSelected) {
+                    themeClass = 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm';
+                } else if (isToday) {
+                    themeClass = 'border border-indigo-500 text-indigo-400 hover:bg-slate-800';
+                }
+                
+                dayBtn.className = `p-1.5 rounded-lg transition duration-150 flex flex-col items-center justify-center relative cursor-pointer ${themeClass}`;
+                
+                const numSpan = document.createElement('span');
+                numSpan.textContent = day;
+                dayBtn.appendChild(numSpan);
+                
+                if (hasAct) {
+                    const dot = document.createElement('span');
+                    dot.className = `w-1.5 h-1.5 rounded-full mt-0.5 inline-block ${isSelected ? 'bg-white' : 'bg-emerald-400 animate-pulse'}`;
+                    dayBtn.appendChild(dot);
+                } else {
+                    const emptyDot = document.createElement('span');
+                    emptyDot.className = 'w-1.5 h-1.5 mt-0.5 inline-block';
+                    dayBtn.appendChild(emptyDot);
+                }
+                
+                container.appendChild(dayBtn);
+            }
+        }
+
+        // 달력 월 전환 컨트롤러
+        function changeCalendarMonth(offset) {
+            currentCalendarMonth += offset;
+            if (currentCalendarMonth < 0) {
+                currentCalendarMonth = 11;
+                currentCalendarYear--;
+            } else if (currentCalendarMonth > 11) {
+                currentCalendarMonth = 0;
+                currentCalendarYear++;
+            }
+            renderSpeechCalendar();
+        }
+
+        // 플래너 달력 월 전환 컨트롤러
+        function changePlannerCalendarMonth(offset) {
+            currentPlannerCalendarMonth += offset;
+            if (currentPlannerCalendarMonth < 0) {
+                currentPlannerCalendarMonth = 11;
+                currentPlannerCalendarYear--;
+            } else if (currentPlannerCalendarMonth > 11) {
+                currentPlannerCalendarMonth = 0;
+                currentPlannerCalendarYear++;
+            }
+            renderPlannerCalendar();
+        }
+
+        // 날짜 클릭 동작
+        function selectSpeechDate(year, month, day) {
+            const mm = String(month + 1).padStart(2, '0');
+            const dd = String(day).padStart(2, '0');
+            selectedSpeechDate = `${year}-${mm}-${dd}`;
+            
+            renderSpeechCalendar();
+            renderTable('speech');
+            updateSpeechStats();
+        }
+
+        // 플래너 날짜 클릭 동작
+        function selectPlannerDate(year, month, day) {
+            const mm = String(month + 1).padStart(2, '0');
+            const dd = String(day).padStart(2, '0');
+            selectedPlannerDate = `${year}-${mm}-${dd}`;
+            
+            renderPlannerCalendar();
+            renderTable('planner');
+            updatePlannerStats();
+        }
+
+        // 오늘 날짜 바로 가기
+        function selectToday() {
+            const today = new Date();
+            currentCalendarYear = today.getFullYear();
+            currentCalendarMonth = today.getMonth();
+            const mm = String(currentCalendarMonth + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            selectedSpeechDate = `${currentCalendarYear}-${mm}-${dd}`;
+            
+            renderSpeechCalendar();
+            renderTable('speech');
+            updateSpeechStats();
+        }
+
+        // 플래너 오늘 날짜 바로가기
+        function selectPlannerToday() {
+            const today = new Date();
+            currentPlannerCalendarYear = today.getFullYear();
+            currentPlannerCalendarMonth = today.getMonth();
+            const mm = String(currentPlannerCalendarMonth + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            selectedPlannerDate = `${currentPlannerCalendarYear}-${mm}-${dd}`;
+            
+            renderPlannerCalendar();
+            renderTable('planner');
+            updatePlannerStats();
+        }
+
+        // 선택일 발표 누계 대시보드 스탯 업데이트
+        function updateSpeechStats() {
+            const selectedDateTitleEl = document.getElementById('selected-date-title');
+            if (selectedDateTitleEl) selectedDateTitleEl.textContent = selectedSpeechDate;
+            
+            let totalSpeechCount = 0;
+            let activeStudentCount = 0;
+            let highFrequencyStudents = [];
+            
+            studentDB.forEach(s => {
+                const act = activities.speech[s.id];
+                if (act && act.dates) {
+                    const record = act.dates.find(d => d.date === selectedSpeechDate);
+                    if (record) {
+                        const countVal = Number(record.count || 0);
+                        if (countVal > 0) {
+                            totalSpeechCount += countVal;
+                            activeStudentCount++;
+                            
+                            if (countVal >= 2 && s.name) {
+                                highFrequencyStudents.push({ name: s.name, count: countVal });
+                            }
+                        }
+                    }
+                }
+            });
+
+            const highFreqContainer = document.getElementById('stat-high-frequency-students');
+            if (highFreqContainer) {
+                highFreqContainer.innerHTML = '';
+                if (highFrequencyStudents.length > 0) {
+                    highFrequencyStudents.forEach(item => {
+                        const badge = document.createElement('span');
+                        badge.className = 'inline-flex items-center gap-1 bg-rose-50 text-rose-700 text-[11px] font-bold px-2 py-0.5 rounded-md border border-rose-200 transition animate-fade-in';
+                        badge.innerHTML = `<i data-lucide="zap" class="w-3 h-3 text-rose-500"></i>${item.name} (${item.count}회)`;
+                        highFreqContainer.appendChild(badge);
+                    });
+                } else {
+                    highFreqContainer.innerHTML = '<span class="text-xs text-slate-300 italic">현재 대상자 없음</span>';
+                }
+            }
+
+            calculateWeeklyLeaderboard();
+            lucide.createIcons();
+        }
+
+        // 플래너 선택 날짜 미검사 학생 명단 업데이트 기능
+        function updatePlannerStats() {
+            const dateTitleEl = document.getElementById('planner-selected-date-title');
+            if (dateTitleEl) dateTitleEl.textContent = selectedPlannerDate;
+            
+            let uncheckStudents = [];
+            
+            studentDB.forEach(s => {
+                if (!s.name) return; 
+                
+                const act = activities.planner[s.id];
+                let isChecked = false;
+                if (act && act.dates) {
+                    const record = act.dates.find(d => d.date === selectedPlannerDate);
+                    if (record && (record.checkType === 'normal' || record.checkType === 'special')) {
+                        isChecked = true;
+                    }
+                }
+                
+                if (!isChecked) {
+                    uncheckStudents.push(s.name);
+                }
+            });
+            
+            const uncheckContainer = document.getElementById('planner-uncheck-students');
+            if (uncheckContainer) {
+                uncheckContainer.innerHTML = '';
+                if (uncheckStudents.length > 0) {
+                    uncheckStudents.forEach(name => {
+                        const badge = document.createElement('span');
+                        badge.className = 'inline-flex items-center gap-1 bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-1 rounded-md border border-rose-200 transition duration-150';
+                        badge.innerHTML = `<i data-lucide="user-x" class="w-3 h-3 text-rose-500"></i>${name}`;
+                        uncheckContainer.appendChild(badge);
+                    });
+                } else {
+                    uncheckContainer.innerHTML = '<span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1.5 border border-emerald-200 rounded-md">모든 학생 플래너 검사 완료! 🎉</span>';
+                }
+            }
+            lucide.createIcons();
+        }
+
+        // 선택된 날짜가 포함된 주의 월~금 발표 기록 순위 집계
+        function calculateWeeklyLeaderboard() {
+            if (!selectedSpeechDate) return;
+            
+            const parts = selectedSpeechDate.split('-');
+            const date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const day = date.getDay();
+            
+            const mondayDiff = day === 0 ? -6 : 1 - day;
+            const monday = new Date(date);
+            monday.setDate(date.getDate() + mondayDiff);
+
+            const weekDates = [];
+            for (let i = 0; i < 5; i++) {
+                const current = new Date(monday);
+                current.setDate(monday.getDate() + i);
+                const yyyy = current.getFullYear();
+                const mm = String(current.getMonth() + 1).padStart(2, '0');
+                const dd = String(current.getDate()).padStart(2, '0');
+                weekDates.push(`${yyyy}-${mm}-${dd}`);
+            }
+
+            const rangeText = `${weekDates[0].substring(5)} ~ ${weekDates[4].substring(5)}`;
+            const rangeEl = document.getElementById('stat-week-range');
+            if (rangeEl) rangeEl.textContent = rangeText;
+
+            const weeklyRanking = [];
+            studentDB.forEach(s => {
+                if (!s.name) return;
+                let sum = 0;
+                const act = activities.speech[s.id];
+                if (act && act.dates) {
+                    act.dates.forEach(d => {
+                        if (weekDates.includes(d.date)) {
+                            sum += Number(d.count || 0);
+                        }
+                    });
+                }
+                if (sum > 0) {
+                    weeklyRanking.push({ name: s.name, id: s.id, count: sum });
+                }
+            });
+
+            weeklyRanking.sort((a, b) => b.count - a.count || a.id - b.id);
+
+            const rankingEl = document.getElementById('stat-weekly-ranking');
+            if (rankingEl) {
+                rankingEl.innerHTML = '';
+                if (weeklyRanking.length > 0) {
+                    weeklyRanking.slice(0, 5).forEach((item, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-center justify-between py-1 border-b border-slate-50 last:border-0';
+                        
+                        let rankBadgeStyle = 'text-slate-500 bg-slate-100';
+                        if (index === 0) rankBadgeStyle = 'text-amber-800 bg-amber-50 border border-amber-200 font-bold';
+                        else if (index === 1) rankBadgeStyle = 'text-slate-700 bg-slate-100 border border-slate-300 font-bold';
+                        else if (index === 2) rankBadgeStyle = 'text-amber-900 bg-orange-50/70 border border-orange-100';
+
+                        li.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 flex items-center justify-center rounded-full text-[10px] ${rankBadgeStyle}">
+                                    ${index + 1}
+                                </span>
+                                <span class="font-bold text-slate-700">${item.name}</span>
+                            </div>
+                            <span class="font-extrabold text-indigo-600">${item.count}회</span>
+                        `;
+                        rankingEl.appendChild(li);
+                    });
+                } else {
+                    rankingEl.innerHTML = '<li class="text-xs text-slate-300 italic py-1 text-center">이번 주 등록 기록 없음</li>';
+                }
+            }
+        }
+
+        // 네비게이션용 탭 스위처
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition hover:bg-slate-800 text-slate-400 hover:text-slate-200';
+            });
+            const activeBtn = document.getElementById(`btn-tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = 'tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition bg-indigo-600 text-white font-bold shadow-sm';
+            }
+
+            const headerTitle = document.getElementById('current-tab-title');
+            const info = {
+                db: { text: '1. 학생 DB 설정 및 관리', icon: 'database' },
+                speech: { text: '2. 발표 우수자 기록대장', icon: 'mic' },
+                planner: { text: '3. 일일 플래너 검사 대장', icon: 'calendar-check' }, 
+                meal: { text: '4. 추가 급식 도우미 관리 대장', icon: 'utensils' },
+                sports: { text: '5. 체육 활동 참여 대장', icon: 'trophy' },
+                library: { text: '6. 도서관 특별석 이용기록', icon: 'book-open' }
+            };
+            headerTitle.innerHTML = `<i data-lucide="${info[tabId].icon}" class="text-indigo-500"></i> ${info[tabId].text}`;
+            lucide.createIcons();
+        }
+
+        // 전체 렌더러 통합 트리거
+        function renderAll() {
+            ['speech', 'planner', 'meal', 'sports', 'library'].forEach(renderTable);
+        }
+
+        // 개별 테이블 생성 렌더러
+        function renderTable(type) {
+            const tbody = document.getElementById(`${type}-table-body`);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            studentDB.forEach(s => {
+                const isRegistered = !!s.name;
+                const nameText = isRegistered ? s.name : '<span class="text-slate-300 italic font-normal text-xs">DB 등록 필요</span>';
+                const actData = activities[type][s.id] || { count: 0, dates: [] };
+
+                if (type === 'speech') {
+                    const record = actData.dates.find(d => d.date === selectedSpeechDate) || { count: 0, memo: "" };
+                    const dailyCount = Number(record.count || 0);
+                    const dailyMemo = record.memo || "";
+
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-slate-50/80 transition ${!isRegistered ? 'opacity-60 bg-slate-50/40' : ''}`;
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-400">${s.id}</td>
+                        <td class="p-3 font-bold text-slate-700">${nameText}</td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="adjustSpeechCount(${s.id}, -1)" ${!isRegistered || dailyCount === 0 ? 'disabled' : ''} 
+                                        class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-rose-100 hover:text-rose-600 rounded-full font-extrabold text-slate-600 transition disabled:opacity-30 disabled:pointer-events-none">
+                                    -
+                                </button>
+                                <span class="font-extrabold text-sm text-slate-800 w-8 text-center bg-slate-50 border border-slate-200 py-1 rounded">
+                                    ${dailyCount}
+                                </span>
+                                <button onclick="adjustSpeechCount(${s.id}, 1)" ${!isRegistered ? 'disabled' : ''} 
+                                        class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-indigo-100 hover:text-indigo-600 rounded-full font-extrabold text-slate-600 transition disabled:opacity-30 disabled:pointer-events-none">
+                                    +
+                                </button>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <input type="text" value="${dailyMemo}" onchange="updateSpeechMemo(${s.id}, this.value)" ${!isRegistered ? 'disabled' : ''} 
+                                   placeholder="${isRegistered ? '발표 주제 및 세부 메모 입력 (입력 후 엔터 또는 바깥 클릭 시 저장)' : '학생 DB 등록이 필요합니다.'}" 
+                                   class="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white outline-none transition disabled:opacity-50">
+                        </td>
+                        <td class="p-3 text-center font-extrabold text-indigo-600">
+                            <span class="inline-block px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded text-xs min-w-[2rem]">
+                                ${actData.count}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                } 
+                else if (type === 'planner') {
+                    const record = actData.dates.find(d => d.date === selectedPlannerDate) || { checkType: null, memo: "" };
+                    const currentCheckType = record.checkType; 
+                    const dailyMemo = record.memo || "";
+
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-slate-50/80 transition ${!isRegistered ? 'opacity-60 bg-slate-50/40' : ''}`;
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-400">${s.id}</td>
+                        <td class="p-3 font-bold text-slate-700">${nameText}</td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="setPlannerCheckType(${s.id}, 'normal')" ${!isRegistered ? 'disabled' : ''} 
+                                        class="px-3 py-1.5 rounded-lg text-xs font-extrabold transition duration-150 ${currentCheckType === 'normal' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-700'} disabled:opacity-30 disabled:pointer-events-none">
+                                    검사
+                                </button>
+                                <button onclick="setPlannerCheckType(${s.id}, 'special')" ${!isRegistered ? 'disabled' : ''} 
+                                        class="px-3 py-1.5 rounded-lg text-xs font-extrabold transition duration-150 ${currentCheckType === 'special' ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-700'} disabled:opacity-30 disabled:pointer-events-none">
+                                    특급검사
+                                </button>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <input type="text" value="${dailyMemo}" onchange="updatePlannerMemo(${s.id}, this.value)" ${!isRegistered ? 'disabled' : ''} 
+                                   placeholder="${isRegistered ? '일일 플래너 수행 상세 메모 입력 후 엔터' : '학생 DB 등록이 필요합니다.'}" 
+                                   class="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white outline-none transition disabled:opacity-50">
+                        </td>
+                        <td class="p-3 text-center font-extrabold text-indigo-600">
+                            <span class="inline-block px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded text-xs min-w-[2rem]">
+                                ${actData.count}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+                else {
+                    let datesHtml = '<span class="text-slate-400 text-xs">기록 없음</span>';
+                    if (actData.dates.length > 0) {
+                        datesHtml = actData.dates.map((d, index) => {
+                            const dateVal = typeof d === 'object' ? d.date : d;
+                            const memoVal = typeof d === 'object' ? (d.memo || '') : '';
+                            const hasMemo = memoVal.trim().length > 0;
+
+                            return `
+                                <span class="relative bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs pl-2.5 pr-3 py-1.5 rounded-full border border-indigo-200 font-bold inline-flex items-center gap-1 select-none cursor-pointer transition ${hasMemo ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}"
+                                      onclick="openMemoModal('${type}', ${s.id}, ${index})">
+                                    <span>${dateVal}</span>
+                                    ${hasMemo ? `<i data-lucide="sticky-note" class="w-3 h-3 text-indigo-500 inline"></i>` : `<i data-lucide="plus" class="w-3 h-3 text-slate-400 inline"></i>`}
+                                </span>
+                            `;
+                        }).join(' ');
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-slate-50/80 transition ${!isRegistered ? 'opacity-60 bg-slate-50/40' : ''}`;
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-400">${s.id}</td>
+                        <td class="p-3 font-bold text-slate-700">${nameText}</td>
+                        <td class="p-3">
+                            <button onclick="addLog('${type}', ${s.id})" ${!isRegistered ? 'disabled' : ''} 
+                                    class="p-1 px-3 bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded text-xs font-bold text-slate-600 transition disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-600">
+                                + 기록
+                            </button>
+                        </td>
+                        <td class="p-3 text-center">
+                            <span class="inline-block px-2 py-1 bg-slate-100 text-slate-800 rounded font-bold text-xs min-w-[2rem]">
+                                ${actData.count}
+                            </span>
+                        </td>
+                        <td class="p-3 gap-1.5 flex flex-wrap items-center">
+                            ${datesHtml}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // 발표 횟수 조정 처리 (정확한 타입 보장 및 화면 동기화)
+        function adjustSpeechCount(studentId, delta) {
+            const student = studentDB.find(s => s.id === studentId);
+            if (!student || !student.name) return;
+
+            let act = activities.speech[studentId];
+            let record = act.dates.find(d => d.date === selectedSpeechDate);
+
+            if (!record) {
+                if (delta < 0) return;
+                record = { date: selectedSpeechDate, count: 0, memo: "" };
+                act.dates.push(record);
+            }
+
+            // 정확한 숫자 연산 유도
+            record.count = Number(record.count || 0) + delta;
+
+            if (record.count < 0) {
+                record.count = 0;
+            }
+
+            // 쓸데없는 빈 레코드 자동 정리
+            if (record.count === 0 && (!record.memo || record.memo.trim() === '')) {
+                const index = act.dates.indexOf(record);
+                if (index > -1) act.dates.splice(index, 1);
+            }
+
+            recalculateSpeechTotalCount(studentId);
+            saveData();
+            renderTable('speech');
+            renderSpeechCalendar();
+            updateSpeechStats();
+            showToast(`${student.name} 발표 상태를 갱신했습니다.`);
+        }
+
+        // 인라인 발표 메모 갱신 기능 (onchange 연동)
+        function updateSpeechMemo(studentId, val) {
+            const student = studentDB.find(s => s.id === studentId);
+            if (!student || !student.name) return;
+
+            let act = activities.speech[studentId];
+            let record = act.dates.find(d => d.date === selectedSpeechDate);
+
+            if (!record) {
+                record = { date: selectedSpeechDate, count: 0, memo: "" };
+                act.dates.push(record);
+            }
+
+            record.memo = val.trim();
+
+            if (Number(record.count || 0) === 0 && record.memo.trim() === '') {
+                const index = act.dates.indexOf(record);
+                if (index > -1) act.dates.splice(index, 1);
+            }
+
+            recalculateSpeechTotalCount(studentId);
+            saveData();
+            renderTable('speech');
+            renderSpeechCalendar();
+            updateSpeechStats();
+            showToast(`${student.name} 학생의 메모를 업데이트했습니다.`);
+        }
+
+        // 플래너 전용 검사 형태 토글 설정 함수
+        function setPlannerCheckType(studentId, type) {
+            const student = studentDB.find(s => s.id === studentId);
+            if (!student || !student.name) return;
+
+            let act = activities.planner[studentId];
+            let record = act.dates.find(d => d.date === selectedPlannerDate);
+
+            if (!record) {
+                record = { date: selectedPlannerDate, checkType: null, memo: "" };
+                act.dates.push(record);
+            }
+
+            if (record.checkType === type) {
+                record.checkType = null;
+            } else {
+                record.checkType = type;
+            }
+
+            if (record.checkType === null && (!record.memo || record.memo.trim() === '')) {
+                const index = act.dates.indexOf(record);
+                if (index > -1) act.dates.splice(index, 1);
+            }
+
+            recalculatePlannerTotalCount(studentId);
+            saveData();
+            renderTable('planner');
+            renderPlannerCalendar();
+            updatePlannerStats();
+            showToast(`${student.name} 학생의 플래너 검사 상태를 갱신했습니다.`);
+        }
+
+        // 플래너 전용 인라인 메모 갱신 기능
+        function updatePlannerMemo(studentId, val) {
+            const student = studentDB.find(s => s.id === studentId);
+            if (!student || !student.name) return;
+
+            let act = activities.planner[studentId];
+            let record = act.dates.find(d => d.date === selectedPlannerDate);
+
+            if (!record) {
+                record = { date: selectedPlannerDate, checkType: null, memo: "" };
+                act.dates.push(record);
+            }
+
+            record.memo = val.trim();
+
+            if (record.checkType === null && record.memo.trim() === '') {
+                const index = act.dates.indexOf(record);
+                if (index > -1) act.dates.splice(index, 1);
+            }
+
+            recalculatePlannerTotalCount(studentId);
+            saveData();
+            renderTable('planner');
+            renderPlannerCalendar();
+            updatePlannerStats();
+            showToast(`${student.name} 학생의 플래너 메모를 업데이트했습니다.`);
+        }
+
+        // 활동 기록 날짜 추가 (급식, 체육, 도서관 공용)
+        function addLog(type, studentId) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const student = studentDB.find(s => s.id === studentId);
+            if (!student || !student.name) return;
+
+            if (!activities[type][studentId]) {
+                activities[type][studentId] = { count: 0, dates: [] };
+            }
+
+            activities[type][studentId].dates.push({ date: todayStr, memo: '' });
+            activities[type][studentId].count = activities[type][studentId].dates.length;
+
+            saveData();
+            renderTable(type);
+            showToast(`${student.name} 학생의 활동이 추가 기록되었습니다.`);
+        }
+
+        // 메모 모달 열기 (날짜 수정 기능 연동)
+        function openMemoModal(type, studentId, index) {
+            const student = studentDB.find(s => s.id === studentId);
+            const actData = activities[type][studentId];
+            if (!student || !actData || !actData.dates[index]) return;
+
+            currentMemoTarget = { type, studentId, index };
+            const item = actData.dates[index];
+            
+            const dateVal = typeof item === 'object' ? item.date : item;
+            const memoVal = typeof item === 'object' ? (item.memo || '') : '';
+
+            document.getElementById('memo-modal-title').textContent = `${getTypeKoreanName(type)} 상세 기록`;
+            document.getElementById('memo-modal-subtitle').textContent = `이름: ${student.name} (${student.id}번)`;
+            
+            // 모달을 열 때 날짜 수정 칸에 기존 기록되어 있던 날짜를 채워 넣음
+            document.getElementById('memo-date-input').value = dateVal;
+            document.getElementById('memo-textarea').value = memoVal;
+
+            document.getElementById('memo-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function getTypeKoreanName(type) {
+            const names = { speech: '발표 우수', planner: '플래너 검사', meal: '급식 도우미', sports: '체육 활동', library: '도서실 특별석' };
+            return names[type] || '활동';
+        }
+
+        // 메모 닫기
+        function closeMemoModal() {
+            document.getElementById('memo-modal').classList.add('hidden');
+            currentMemoTarget = null;
+        }
+
+        // 메모 및 날짜 수정본 통합 저장
+        function saveMemo() {
+            if (!currentMemoTarget) return;
+            const { type, studentId, index } = currentMemoTarget;
+            const textValue = document.getElementById('memo-textarea').value.trim();
+            const dateValue = document.getElementById('memo-date-input').value; // 날짜값 입력 필드 취득
+
+            if (!dateValue) {
+                showToast('날짜를 올바르게 지정해주세요.', 'alert');
+                return;
+            }
+
+            const targetObj = activities[type][studentId].dates[index];
+            if (typeof targetObj === 'object') {
+                targetObj.date = dateValue; // 변경된 날짜 적용
+                targetObj.memo = textValue;
+            } else {
+                activities[type][studentId].dates[index] = { date: dateValue, memo: textValue };
+            }
+
+            saveData();
+            renderTable(type);
+            closeMemoModal();
+            showToast('기록 날짜와 메모를 업데이트했습니다.');
+        }
+
+        // 특정 활동 기록 로그 단건 삭제
+        function deleteSelectedMemo() {
+            if (!currentMemoTarget) return;
+            const { type, studentId, index } = currentMemoTarget;
+            
+            activities[type][studentId].dates.splice(index, 1);
+            activities[type][studentId].count = activities[type][studentId].dates.length;
+
+            saveData();
+            renderTable(type);
+            closeMemoModal();
+            showToast('해당 활동 기록이 삭제되었습니다.');
+        }
+
+        // 전체 초기화 과정
+        function confirmResetAll() {
+            openConfirmModal('데이터 초기화 경고', '현재 입력한 학생 명단과 발표, 플래너, 급식, 체육, 도서관의 모든 기록이 완전히 삭제됩니다. 초기화하시겠습니까?', () => {
+                localStorage.removeItem('school_db_students_2026');
+                localStorage.removeItem('school_db_activities_2026');
+                
+                loadData();
+                initCalendarState();
+                buildInputs();
+                renderAll();
+                renderSpeechCalendar();
+                updateSpeechStats();
+                
+                renderPlannerCalendar();
+                updatePlannerStats();
+
+                closeModal();
+                showToast('시스템 데이터가 포맷팅되었습니다.', 'alert');
+            });
+        }
+
+        // 유틸 모달 핸들러
+        function openConfirmModal(title, msg, onConfirm) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = msg;
+            
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.replaceWith(btn.cloneNode(true));
+            document.getElementById('modal-confirm-btn').addEventListener('click', onConfirm);
+            
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // 유틸리티 토스트
+        function showToast(message, variant = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.textContent = message;
+            
+            if (variant === 'alert') {
+                toastIcon.setAttribute('data-lucide', 'alert-circle');
+                toast.className = 'fixed bottom-6 right-6 z-50 bg-rose-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 transform translate-y-0 opacity-100 transition-all duration-300';
+            } else {
+                toastIcon.setAttribute('data-lucide', 'check-circle');
+                toast.className = 'fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 transform translate-y-0 opacity-100 transition-all duration-300';
+            }
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.className = 'fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
