@@ -58,16 +58,16 @@ window.closeModal = closeModal;
 
 // Calendar Module
 window.changeCalendarMonth = (offset) => {
-    import('./modules/calendar.js').then(m => m.changeCalendarMonth(offset));
+    import('../modules/calendar.js').then(m => m.changeCalendarMonth(offset));
 };
 window.selectToday = () => {
-    import('./modules/calendar.js').then(m => m.selectToday());
+    import('../modules/calendar.js').then(m => m.selectToday());
 };
 window.changePlannerCalendarMonth = (offset) => {
-    import('./modules/calendar.js').then(m => m.changePlannerCalendarMonth(offset));
+    import('../modules/calendar.js').then(m => m.changePlannerCalendarMonth(offset));
 };
 window.selectPlannerToday = () => {
-    import('./modules/calendar.js').then(m => m.selectPlannerToday());
+    import('../modules/calendar.js').then(m => m.selectPlannerToday());
 };
 
 // Initialization
